@@ -7,6 +7,30 @@ This is inspired by Heitor Lessa's Serverless Airline Reservation system on AWS 
      
 However I will be building custom tooling as we go along to simplify as many repeated activities as possible.
 
+- [Serverless Airline Reservation Application](#serverless-airline-reservation-application)
+  * [Legend](#legend)
+  * [Use Cases](#use-cases)
+    + [Search](#search)
+    + [Book](#book)
+    + [Manage](#manage)
+  * [24-June-2019](#24-june-2019)
+    + [@activity Create and initialize a workspace](#activity-create-and-initialize-a-workspace)
+    + [@script `mkdirg`: Create a new directory with .gitkeep](#script-mkdirg-create-a-new-directory-with-gitkeep)
+    + [Search Design & Architecture](#search-design--architecture)
+      - [Functionality](#functionality)
+      - [UI Components](#ui-components)
+      - [Backend Routes](#backend-routes)
+      - [Data Source: Airports](#data-source-airports)
+      - [Data Source: Flights Catalog](#data-source-flights-catalog)
+    + [@activity Barebones website with search form](#activity-barebones-website-with-search-form)
+    + [@activity Barebones HTTP backend for `/search` endpoint](#activity-barebones-http-backend-for-search-endpoint)
+      - [@activity Authoring Swagger](#activity-authoring-swagger)
+      - [@activity Creating HTTP Endpoint with Swagger](#activity-creating-http-endpoint-with-swagger)
+        * [Create API Gateway Deployment](#create-api-gateway-deployment)
+          + [Adding x-amazon-apigateway-integration` to Swagger](#adding-x-amazon-apigateway-integration-to-swagger)
+      - [@activity Create a Lambda function](#activity-create-a-lambda-function)
+        * [@activity Create an IAM Role for Lambda](#activity-create-an-iam-role-for-lambda)
+
 ## Legend
 
 To call out specific activities, I will use the following annotations:
