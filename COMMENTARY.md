@@ -17,6 +17,8 @@ To call out specific activities, I will use the following annotations:
 
 **@tool**: I am converting a script to a tool
 
+You can also search `git log` for these annotations. There will usually be one commit matching the annotations here
+if you want to look up the code for activity described here.
 
 ## Use Cases
 This app will support the following use cases: 
@@ -54,6 +56,7 @@ git init
 # Add `scripts` directory to PATH so I can easily access it from my shell
 echo 'AIRLINE=~/workspace/github-repos/serverless-airline' >> ~/.zshrc
 echo 'export PATH="$PATH:$AIRLINE/scripts"' >> ~/.zshrc
+source ~/.zshrc
 
 # Add .gitkeep files to each directory so I can actually commit these folders
 touch $AIRLINE_APP/.gitkeep
@@ -64,6 +67,15 @@ touch $AIRLINE_TOOLS/.gitkeep
 # Commit everything
 git add .
 git commit -m "@activity Create and initialize a workspace"
+```
+
+### @script `mkdirg`: Create a new directory with .gitkeep
+Since we have created a new directory with `.gitkeep` file thrice, I am going to write a script for it. This is a 
+non-serverless specific activity that I am not going to create a tool, instead use a script.
+
+```bash
+git add scripts/mkdirg
+git commit -m "@script `mkdirg`: Create a new directory with .gitkeep"
 ```
 
 ### Search Design & Architecture
@@ -104,15 +116,20 @@ This data source contains all operational flight routes, schedules, cancellation
 arrival airport, and departure date, this data source is capable of returning all available flights.
 
 
-### @activity Directory Structure For App
+### @activity Barebones website with search form 
 
 ```bash
+# Create separate directory for all website components because this is usually using a different software stack 
+# than backend
+mkdirg $AIRLINE_APP/www
+touch $AIRLINE_APP/www/index.html
 
-cd $AIRLINE_APP
+# Write the index.html file
+# View file in browser
+open index.html 
 
-# Create one directory for frontend
-mkdir $AIRLINE_APP/frontend
-
-# Create one directory for each backend use case
-mkdir $AIRLINE_APP/search
+git add $AIRLINE_APP/www
+git commit -m "@activity Barebones website with search form"
 ```
+
+
