@@ -188,5 +188,200 @@ git commit -m "@activity Authoring Swagger"
 ```
 
 #### @activity Creating HTTP Endpoint with Swagger
+**Status: ABANDONED**
+**Start: 2019-06-24 11:49**
+**End:   2019-06-24 12:49**
 
 Now that we have a Swagger, let's create an API Gateway endpoint using the Swagger.
+
+
+```
+Google for "creating api gateway endpoint using swagger"
+
+Open "https://docs.aws.amazon.com/apigateway/latest/developerguide/create-api-using-swagger.html"
+
+Found Console instructions. But found CLI instructions at the end. So copy & pasting now.
+```
+
+```bash
+cd $AIRLINE_APP/search 
+
+# Import the Swagger 
+aws apigateway import-rest-api --body file://`pwd`/swagger.json
+
+# @surprise This command actually worked and gave me the following response!
+{
+    "id": "d0bkpi6xth",
+    "name": "Serverless Airline Reservation",
+    "createdDate": 1561402235,
+    "version": "1.0",
+    "apiKeySource": "HEADER",
+    "endpointConfiguration": {
+        "types": [
+            "EDGE"
+        ]
+    }
+}
+```
+
+Now that I have the API created, I need to get the URL. By browsing on APIGW documentation left panel, I found this 
+page: [https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-call-api.html](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-call-api.html).
+This page says I can construct the endpoint like this: `https://{restapi_id}.execute-api.{region}.amazonaws.com/{stage_name}/`.
+
+From response above, the `id` property looks like the `{restapi_id}` in the URL template. It is deployed to default region
+which should be `us-east-1`. I still have to figure out what `{stage_name}` is. 
+
+```
+Google "apigateway stage name"
+
+Open "https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-deploy-api.html"
+
+Wrong page. 
+
+But browsing the left panel on doc page, found another page
+
+Open "https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-deployments.html"
+
+Turns out I have to create a "Deployment", followed by "Update Stage", and then "Deploy Again to the Stage"
+```
+
+##### Create API Gateway Deployment
+**Start: 2019-06-24 12:20**
+
+
+```bash
+# Creating the deployment
+
+# I had to save & retrieve the APIGW ID from somewhere. So let me store it in a script now
+$ aws apigateway create-deployment --rest-api-id d0bkpi6xth
+# ^^FAILED: An error occurred (BadRequestException) when calling the CreateDeployment operation: Invalid deployment content specified.CreateDeploymentInput should not be null.
+
+# Let's look at help
+$ aws apigateway create-deployment help
+# Looks like there is a --stage-name property
+
+# Let's create a deployment with the --stage-name = prod
+aws apigateway create-deployment --rest-api-id d0bkpi6xth --stage-name prod
+# ^^FAILED: An error occurred (BadRequestException) when calling the CreateDeployment operation: No integration defined for method
+```
+
+I don't know what the error is. So let's Google!
+
+```
+Google "CreateDeployment operation: No integration defined for method"
+
+Open https://github.com/awslabs/serverless-application-model/issues/5
+
+By parsing, looks like I need to add `x-amazon-apigateway-integration` to Swagger. From the URL, I found another
+example, which looks promising:
+
+Open https://github.com/awslabs/serverless-application-model/blob/master/examples/2016-10-31/api_swagger_cors/swagger.yaml#L41
+```
+
+######  Adding x-amazon-apigateway-integration` to Swagger
+
+I added the following snippet to Swagger. 
+
+> NOTE: I know this is wrong because I know CloudFormation and Fn::Sub is a CFN construct. But being a naive user of AWS,
+  I don't expect to know the nuances.
+
+```json
+  "x-amazon-apigateway-integration": {
+      "uri": {
+        "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunction.Arn}/invocations"
+      },
+      "httpMethod": "POST",
+      "type": "aws_proxy"
+  }
+```
+
+Now that we have updated Swagger, we should pass Swagger back to API Gateway. Based on our previous experience, 
+let's go re-import the API and re-deploy.
+
+```console
+
+$ cd $AIRLINE_APP/search
+
+$ aws apigateway import-rest-api --body file://`pwd`/swagger.json
+An error occurred (BadRequestException) when calling the ImportRestApi operation: Unable to parse API definition because of a malformed integration at path /search.
+```
+
+Looking at the integration URI above, looks like the integration needs Lambda Function because the URI contains a 
+Lambda Function ARN.
+
+May be I am doing this all backwards. I am going to abandon this approach and start with a Lambda instead.
+
+
+#### @activity Create a Lambda function
+**Start: 2019-06-24 12:54**
+**End:   2019-06-24 13:37**
+
+
+```
+Google "creating a lambda function in python"
+
+After exploring 4 links which all gave "Console" based walkthrough, I landed at this one.
+Open "https://docs.aws.amazon.com/lambda/latest/dg/python-programming-model.html"
+
+Still talks about Console based walkthrough. 
+
+Open "https://docs.aws.amazon.com/lambda/latest/dg/lambda-python-how-to-create-deployment-package.html"
+Piecing together information from different pages, I am creating a lambda file now
+```
+
+```bash
+cd $AIRLINE_APP/search
+touch $AIRLINE_APP/search/function.py
+
+# Copy paste handler code from https://docs.aws.amazon.com/lambda/latest/dg/python-programming-model-handler-types.html
+# Create the zip
+zip function.zip function.py
+
+# Upload function to Lambda
+aws lambda update-function-code --function-name python37 --zip-file fileb://function.zip
+# ^^ FAILED: An error occurred (ResourceNotFoundException) when calling the UpdateFunctionCode operation: Function not found: arn:aws:lambda:us-east-1:1235:function:python37
+# Reading help page, looks like this is not the right command to create the function with code.
+
+aws lambda create-function --function-name search-function --zip-file fileb://function.zip --runtime python37 --handler function.handler 
+# ^^FAILED: Looks like I need a Role ARN for this
+```
+
+##### @activity Create an IAM Role for Lambda
+
+```
+Google "aws lambda create function"
+
+Open "https://medium.com/@jacobsteeves/aws-lambda-from-the-command-line-7efab7f3ebd9"
+
+Turns out this is the only post that explains how to set everything up manually
+```
+
+```bash
+
+cat '{
+    "Version": "2012-10-17",
+    "Statement": [{
+        "Effect": "Allow",
+        "Principal": { "AWS" : "*" },
+        "Action": "sts:AssumeRole"
+    }]
+}' > /tmp/basic_lambda_role.json
+
+aws iam create-role --role-name basic_lambda_role --assume-role-policy-document file://basic_lambda_role.json
+
+# This worked and produced a Role
+# arn:aws:iam::283125242610:role/basic_lambda_role
+
+```
+
+Now that the role is created, I can go ahead and create the function
+
+```bash
+aws lambda create-function --function-name search-function --zip-file fileb://function.zip --runtime python3.7 --handler function.handler --role arn:aws:iam::283125242610:role/basic_lambda_role
+
+# This created the function!
+
+git add .
+git commit -m "@activity Create a Lambda function"
+```
+

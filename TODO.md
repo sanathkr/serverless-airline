@@ -7,3 +7,4 @@ who has experience building web applications on AWS, but not with Serverless tec
 
 - Swagger for API Gateway
 - JSON Schema to write schemas within Swagger
+- What is Fn::Sub?

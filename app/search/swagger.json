@@ -35,6 +35,13 @@
             }
           }
         ],
+        "x-amazon-apigateway-integration": {
+          "uri": {
+            "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunction.Arn}/invocations"
+          },
+          "httpMethod": "POST",
+          "type": "aws_proxy"
+        },
         "responses": {
           "200": {
             "description": "Flight search results",
