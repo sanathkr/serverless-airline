@@ -17,6 +17,8 @@ To call out specific activities, I will use the following annotations:
 
 **@tool**: I am converting a script to a tool
 
+**@surprise**: When my expectation from an activity did not match with the result
+
 You can also search `git log` for these annotations. There will usually be one commit matching the annotations here
 if you want to look up the code for activity described here.
 
@@ -117,6 +119,8 @@ arrival airport, and departure date, this data source is capable of returning al
 
 
 ### @activity Barebones website with search form 
+**Start: 2019-06-24 09:00**
+**End:   2019-06-24 09:30**
 
 ```bash
 # Create separate directory for all website components because this is usually using a different software stack 
@@ -132,4 +136,57 @@ git add $AIRLINE_APP/www
 git commit -m "@activity Barebones website with search form"
 ```
 
+### @activity Barebones HTTP backend for `/search` endpoint
+**Start: 2019-06-24 09:50**
 
+Fun stuff begins here. We are going to:
+
+1. Create a serverless HTTP endpoint for `POST /search` that returns a simple HTML message "form success"
+1. Wire up `index.html` to submit the form to this endpoint
+1. Test form submission to ensure the success message is shown
+
+AWS API Gateway is the serverless service that provides highly available & scalable HTTP endpoints. We will first model
+our API in the Swagger JSON language. We will then provide the Swagger file to API Gateway to create the endpoints
+for us. For those of you that don't know, Swagger is a [open specification](https://swagger.io/resources/open-api/) 
+to model RESTful APIs.
+
+#### @activity Authoring Swagger 
+**End:   2019-06-24 10:35**
+
+
+```bash
+# Create the search usecase folder
+mkdirg $AIRLINE_APP/search
+
+# Create an empty Swagger file
+touch $AIRLINE_APP/search/swagger.json
+```
+
+I don't remember the Swagger specification. Let me Google and find a snippet for Swagger that I can copy, paste, and 
+modify.
+
+```
+Google for "api gateway swagger example"
+
+Open https://cloudonaut.io/create-a-serverless-restful-api-with-api-gateway-swagger-lambda-and-dynamodb/
+
+Copy the Swagger snippet from this website to swagger.json
+```
+
+**@surprise PyCharm automatically checks Swagger Schema**: I edited the Swagger file to remove `info: {}` and suddenly my PyCharm 
+gave a big bright error highlight. Apparently, "info" is required by Swagger schema. PyCharm automatically applied the
+Swagger's JSON Schema from SchemaStore.org to validate this file.
+
+I am now editing the Swagger file to make it work for `POST /search` endpoint. The example gave me a response schema,
+but I don't know how to add a request schema. After some googling, I found
+[https://swagger.io/docs/specification/2-0/describing-request-body/](https://swagger.io/docs/specification/2-0/describing-request-body/)
+which contains request schema format.
+
+```bash
+git add .
+git commit -m "@activity Authoring Swagger"
+```
+
+#### @activity Creating HTTP Endpoint with Swagger
+
+Now that we have a Swagger, let's create an API Gateway endpoint using the Swagger.

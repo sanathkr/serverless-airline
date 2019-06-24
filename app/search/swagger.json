@@ -1,0 +1,78 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Serverless Airline Reservation",
+    "version": "1.0"
+  },
+  "schemes": ["https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/search": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "search_request",
+            "schema": {
+              "type": "object",
+              "required": [
+                "departure_airport",
+                "arrival_airport",
+                "departure_date"
+              ],
+              "properties": {
+                "departure_airport": {
+                  "type": "string"
+                },
+                "arrival_airport": {
+                  "type": "string"
+                },
+                "departure_date": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Flight search results",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/FlightSearchResponse"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "FlightSearchResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "flight_number": {
+          "type": "string"
+        },
+        "duration_hr": {
+          "type": "number"
+        },
+        "duration_min": {
+          "type": "number"
+        },
+        "price": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "flight_number", "duration_hr", "duration_min", "price", "currency"]
+    }
+  }
+}
